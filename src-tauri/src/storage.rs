@@ -1,7 +1,9 @@
 use anyhow::Context;
 use serde::{de::DeserializeOwned, Serialize};
+#[cfg(unix)]
+use std::fs::File;
 use std::{
-    fs::{self, File, OpenOptions},
+    fs::{self, OpenOptions},
     io::Write,
     path::Path,
 };
