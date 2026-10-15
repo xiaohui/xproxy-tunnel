@@ -46,7 +46,7 @@ npm run tauri -- build --bundles nsis
 Current macOS development output:
 `src-tauri/target/debug/bundle/macos/XProxy Tunnel.app`.
 
-GitHub Actions runs checks on macOS and Windows for pushes and pull requests. Pushing a `v*` tag builds Apple Silicon and Intel macOS DMGs plus a Windows x64 NSIS installer, then creates a GitHub Draft Release. Review and publish the draft after confirming the files. Packages are currently unsigned; macOS signing/notarization and Windows code signing need publisher credentials before broad public distribution.
+GitHub Actions runs checks on macOS and Windows for pushes and pull requests. Pushing a `v*` tag builds Apple Silicon and Intel macOS DMGs plus a Windows x64 NSIS installer into a GitHub Draft Release. The release workflow requires Apple Developer signing/notarization and Windows Authenticode secrets; it fails before publishing assets if any are missing. Configure the repository secrets listed in `.github/workflows/desktop-release.yml`, then review and publish the signed draft.
 
 ## Verification
 
