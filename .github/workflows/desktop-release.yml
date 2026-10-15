@@ -16,8 +16,13 @@ jobs:
         include:
           - os: macos-latest
             bundles: dmg
+            target: aarch64-apple-darwin
+          - os: macos-latest
+            bundles: dmg
+            target: x86_64-apple-darwin
           - os: windows-latest
             bundles: nsis
+            target: ""
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -26,6 +31,8 @@ jobs:
           node-version: 22
           cache: npm
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
       - run: npm ci
       - uses: tauri-apps/tauri-action@v1
         env:
@@ -39,4 +46,4 @@ jobs:
             macOS and Windows installers in this release are unsigned. macOS distribution signing and notarization can be added with Apple Developer credentials.
           releaseDraft: true
           prerelease: false
-          args: --bundles ${{ matrix.bundles }}
+          args: --bundles ${{ matrix.bundles }} ${{ matrix.target && format('--target {0}', matrix.target) || '' }}
