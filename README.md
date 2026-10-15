@@ -78,4 +78,4 @@ It reports actual status, requires a verified HTTPS probe and stops the tunnel b
 - [Chromium SOCKS proxy and remote hostname resolution](https://chromium.googlesource.com/website/+/refs/heads/main/site/developers/design-documents/network-stack/socks-proxy/index.md)
 - [Windows per-connection internet options](https://learn.microsoft.com/en-us/windows/win32/api/wininet/ns-wininet-internet_per_conn_option_listw)
 
-The included `.github/workflows/desktop-check.yml` verifies macOS and Windows when this folder becomes the repository root. It has not been run or published from this checkout.
+The [GitHub Actions checks](https://github.com/xiaohui/xproxy-tunnel/actions) have passed on macOS and Windows for commit `fe8d5ad`; the tag release workflow has also produced the Draft Release assets listed above.
