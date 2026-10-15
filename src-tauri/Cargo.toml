@@ -1,0 +1,45 @@
+[package]
+name = "xproxy-desktop"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+default-run = "xproxy-desktop"
+
+[lib]
+name = "xproxy"
+path = "src/lib.rs"
+
+[[bin]]
+name = "xproxy-desktop"
+path = "src/main.rs"
+required-features = ["desktop"]
+
+[features]
+default = ["desktop"]
+desktop = ["dep:tauri", "dep:tauri-plugin-dialog"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+anyhow = "1"
+async-trait = "0.1"
+bytes = "1"
+fs2 = "0.4"
+http-body-util = "0.1"
+hyper = { version = "1", features = ["client", "server", "http1"] }
+hyper-util = { version = "0.1", features = ["tokio"] }
+libc = "0.2"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "socks"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "2", optional = true, features = ["tray-icon"] }
+tauri-plugin-dialog = { version = "2", optional = true }
+tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["rt"] }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Networking_WinInet", "Win32_Foundation", "Win32_System_Memory"] }
+
+[dev-dependencies]
+tempfile = "3"

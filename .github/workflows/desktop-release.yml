@@ -1,0 +1,42 @@
+name: Desktop release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            bundles: dmg
+          - os: windows-latest
+            bundles: nsis
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - run: npm ci
+      - uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: XProxy Tunnel ${{ github.ref_name }}
+          releaseBody: |
+            XProxy Tunnel desktop release for macOS and Windows.
+
+            macOS and Windows installers in this release are unsigned. macOS distribution signing and notarization can be added with Apple Developer credentials.
+          releaseDraft: false
+          prerelease: false
+          args: --bundles ${{ matrix.bundles }}
