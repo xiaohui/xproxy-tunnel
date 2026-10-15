@@ -37,6 +37,6 @@ jobs:
             XProxy Tunnel desktop release for macOS and Windows.
 
             macOS and Windows installers in this release are unsigned. macOS distribution signing and notarization can be added with Apple Developer credentials.
-          releaseDraft: false
+          releaseDraft: true
           prerelease: false
           args: --bundles ${{ matrix.bundles }}

@@ -46,7 +46,7 @@ npm run tauri -- build --bundles nsis
 Current macOS development output:
 `src-tauri/target/debug/bundle/macos/XProxy Tunnel.app`.
 
-GitHub Actions runs checks on macOS and Windows for pushes and pull requests. Pushing a `v*` tag builds a macOS DMG and Windows NSIS installer on native runners and publishes both to a GitHub Release. Releases are currently unsigned; macOS signing/notarization and Windows code signing need publisher credentials before broad public distribution.
+GitHub Actions runs checks on macOS and Windows for pushes and pull requests. Pushing a `v*` tag builds a macOS DMG and Windows NSIS installer on native runners and creates a GitHub Draft Release with both packages. Review and publish the draft after confirming the files. Packages are currently unsigned; macOS signing/notarization and Windows code signing need publisher credentials before broad public distribution.
 
 ## Verification
 
