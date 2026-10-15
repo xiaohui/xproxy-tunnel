@@ -36,6 +36,7 @@ jobs:
       - run: npm ci
       - name: Prepare Apple signing and notarization credentials
         if: matrix.os == 'macos-latest'
+        id: apple-signing
         shell: bash
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
@@ -47,13 +48,20 @@ jobs:
           APPLE_API_KEY_CONTENT: ${{ secrets.APPLE_API_KEY_CONTENT }}
         run: |
           set -euo pipefail
+          configured=0
           for name in APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD APPLE_SIGNING_IDENTITY APPLE_API_KEY APPLE_API_ISSUER APPLE_TEAM_ID APPLE_API_KEY_CONTENT; do
-            if [[ -z "${!name}" ]]; then
-              echo "Missing required GitHub Actions secret: $name" >&2
-              exit 1
-            fi
+            [[ -n "${!name}" ]] && configured=$((configured + 1))
           done
+          if [[ "$configured" -eq 0 ]]; then
+            echo "Apple signing credentials are not configured; building an unsigned macOS package."
+            exit 0
+          fi
+          if [[ "$configured" -ne 7 ]]; then
+            echo "Apple signing is partially configured. Set all seven APPLE_* secrets or remove them to build unsigned packages." >&2
+            exit 1
+          fi
           printf '%s' "$APPLE_API_KEY_CONTENT" | base64 --decode > "$RUNNER_TEMP/AuthKey.p8"
+          echo "api_key_path=$RUNNER_TEMP/AuthKey.p8" >> "$GITHUB_OUTPUT"
       - name: Prepare Windows signing certificate
         if: matrix.os == 'windows-latest'
         id: windows-signing
@@ -62,8 +70,12 @@ jobs:
           WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
         run: |
+          if (-not $env:WINDOWS_CERTIFICATE -and -not $env:WINDOWS_CERTIFICATE_PASSWORD) {
+            Write-Output "Windows signing credentials are not configured; building an unsigned installer."
+            exit 0
+          }
           if (-not $env:WINDOWS_CERTIFICATE -or -not $env:WINDOWS_CERTIFICATE_PASSWORD) {
-            throw "Missing WINDOWS_CERTIFICATE or WINDOWS_CERTIFICATE_PASSWORD repository secrets."
+            throw "Set both WINDOWS_CERTIFICATE and WINDOWS_CERTIFICATE_PASSWORD, or leave both unset for an unsigned installer."
           }
           $certificatePath = Join-Path $env:RUNNER_TEMP "xproxy-codesign.pfx"
           [IO.File]::WriteAllBytes($certificatePath, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE))
@@ -93,13 +105,14 @@ jobs:
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_API_KEY_PATH: ${{ runner.temp }}/AuthKey.p8
-          APPLE_API_KEY_CONTENT: ${{ secrets.APPLE_API_KEY_CONTENT }}
+          APPLE_API_KEY_PATH: ${{ steps.apple-signing.outputs.api_key_path }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: XProxy Tunnel ${{ github.ref_name }}
           releaseBody: |
-            XProxy Tunnel desktop release for macOS and Windows. macOS packages are signed and notarized; the Windows installer is Authenticode-signed.
+            XProxy Tunnel desktop release for macOS and Windows.
+
+            Packages are unsigned unless the corresponding publisher credentials are configured in GitHub Actions. Unsigned packages are suitable for private/internal use; macOS may display a Gatekeeper warning. Optional signing credentials and setup are documented in `docs/release-signing.md`.
           releaseDraft: true
           prerelease: false
-          args: --bundles ${{ matrix.bundles }} ${{ matrix.target && format('--target {0}', matrix.target) || '' }} ${{ matrix.os == 'windows-latest' && format('--config "{0}"', steps.windows-signing.outputs.config) || '' }}
+          args: --bundles ${{ matrix.bundles }} ${{ matrix.target && format('--target {0}', matrix.target) || '' }} ${{ matrix.os == 'windows-latest' && steps.windows-signing.outputs.config != '' && format('--config "{0}"', steps.windows-signing.outputs.config) || '' }}

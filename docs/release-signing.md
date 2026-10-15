@@ -1,6 +1,6 @@
 # Release signing credentials
 
-Add these values under **GitHub → Settings → Secrets and variables → Actions → New repository secret**. Never commit certificate files or paste private keys into issues, pull requests, or chat.
+Signing is optional. Without these secrets, CI produces unsigned packages for private/internal use; macOS may display a Gatekeeper warning. To enable signatures, add the relevant values under **GitHub → Settings → Secrets and variables → Actions → New repository secret**. Never commit certificate files or paste private keys into issues, pull requests, or chat.
 
 ## macOS signing and notarization
 
@@ -38,4 +38,4 @@ Encode the PFX without line breaks, for example on macOS:
 base64 -i codesign.pfx | tr -d '\n'
 ```
 
-Once all nine secrets are configured, push or rerun the `v0.1.0` tag workflow. Confirm that each artifact has a valid platform signature and that Apple notarization succeeded before publishing the GitHub Draft Release.
+To enable both signing paths, configure all nine secrets. For macOS signing, configure all seven `APPLE_*` secrets together; for Windows signing, configure both `WINDOWS_*` secrets. A partially configured platform fails clearly. With no secrets configured, the workflow creates unsigned packages and keeps the release as a draft for review.
